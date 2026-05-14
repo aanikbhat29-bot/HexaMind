@@ -1,0 +1,38 @@
+{
+  "name": "ai-edu-platform",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "server",
+    "server/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @ai-edu/web run dev",
+    "dev:mobile": "cd apps/mobile && flutter pub get && flutter run",
+    "dev:auth": "npm --workspace @ai-edu/auth-service run dev",
+    "dev:ai": "npm --workspace @ai-edu/ai-service run dev",
+    "dev:chat": "npm --workspace @ai-edu/chat-service run dev",
+    "dev:notes": "npm --workspace @ai-edu/notes-service run dev",
+    "dev:community": "npm --workspace @ai-edu/community-service run dev",
+    "dev:notification": "npm --workspace @ai-edu/notification-service run dev",
+    "dev:backend": "npm-run-all --parallel dev:auth dev:ai dev:chat dev:notes dev:community dev:notification",
+    "dev:all": "npm-run-all --parallel dev:web dev:backend",
+    "build:web": "npm --workspace @ai-edu/web run build",
+    "build:auth": "npm --workspace @ai-edu/auth-service run build",
+    "build:ai": "npm --workspace @ai-edu/ai-service run build",
+    "build:chat": "npm --workspace @ai-edu/chat-service run build",
+    "build:notes": "npm --workspace @ai-edu/notes-service run build",
+    "build:community": "npm --workspace @ai-edu/community-service run build",
+    "build:notification": "npm --workspace @ai-edu/notification-service run build",
+    "build:backend": "npm-run-all --parallel --aggregate-output --continue-on-error build:auth build:ai build:chat build:notes build:community build:notification",
+    "docker:up": "docker-compose up --build"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.6.2",
+    "ts-node": "^10.9.1",
+    "mongoose": "^7.5.0"
+  }
+}
