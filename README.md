@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Education Platform Monorepo
 
 A fully open-source AI-powered education ecosystem built with a modern microservices architecture.
@@ -75,3 +76,7 @@ A fully open-source AI-powered education ecosystem built with a modern microserv
 - The system is designed for Linux/Fedora compatibility with Docker.
 - All backend services are built in TypeScript and can scale independently.
 - The Flutter mobile app is configured for Android and can be extended for offline content.
+=======
+# HexaMind
+HexaMind — A cyberpunk-inspired AI education ecosystem with realtime classrooms, AI tutors, collaborative communities, and fully self-hosted open-source intelligence.
+>>>>>>> 1a481c08aa96266a064f46f45aaa967f87a2c453
