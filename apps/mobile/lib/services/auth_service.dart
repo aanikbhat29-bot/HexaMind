@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
   final String apiUrl;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  static const String _storageTokenKey = 'hexa_mind_jwt_token';
 
   AuthService({required this.apiUrl});
 
@@ -88,15 +91,27 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         developer.log('Profile fetched successfully');
-        return {'success': true, 'profile': data['profile']};
+        return {'success': true, 'user': data['profile']};
       } else {
         final error = jsonDecode(response.body);
-        developer.log('Profile fetch failed: ${error['error']}');
-        return {'success': false, 'error': error['error'] ?? 'Profile not found'};
+        developer.log('Profile fetch failed: ${error['message']}');
+        return {'success': false, 'error': error['message'] ?? 'Profile not found'};
       }
     } catch (e) {
       developer.log('Error fetching profile: $e');
       return {'success': false, 'error': 'Unable to fetch profile'};
     }
+  }
+
+  Future<void> saveToken(String token) async {
+    await _secureStorage.write(key: _storageTokenKey, value: token);
+  }
+
+  Future<String?> readToken() async {
+    return await _secureStorage.read(key: _storageTokenKey);
+  }
+
+  Future<void> deleteToken() async {
+    await _secureStorage.delete(key: _storageTokenKey);
   }
 }

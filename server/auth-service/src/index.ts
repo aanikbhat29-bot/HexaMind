@@ -12,7 +12,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json());
 
-const PORT = process.env.PORT || 4001;
+const PORT = Number(process.env.PORT || 4001);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
 const PUBLIC_HOST = process.env.PUBLIC_HOST || `http://${LOCAL_IP}:${PORT}`;
@@ -43,11 +43,17 @@ const verifyToken = (req: any, res: any, next: any) => {
   }
 };
 
-app.post('/api/auth/signup', asyncHandler(async (req, res) => {
+app.post('/api/auth/signup', asyncHandler(async (req: any, res: any) => {
   const { email, password, role = 'student', name, studentId } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
+  if (!email || !password) {
+    res.status(400).json({ message: 'Email and password are required' });
+    return;
+  }
   const existing = await usersCollection().findOne({ email });
-  if (existing) return res.status(409).json({ message: 'User already exists' });
+  if (existing) {
+    res.status(409).json({ message: 'User already exists' });
+    return;
+  }
 
   const passwordHash = await bcrypt.hash(password, 10);
   const result = await usersCollection().insertOne({
@@ -66,14 +72,23 @@ app.post('/api/auth/signup', asyncHandler(async (req, res) => {
   res.status(201).json({ token, user });
 }));
 
-app.post('/api/auth/login', asyncHandler(async (req, res) => {
+app.post('/api/auth/login', asyncHandler(async (req: any, res: any) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
+  if (!email || !password) {
+    res.status(400).json({ message: 'Email and password are required' });
+    return;
+  }
 
   const user = await usersCollection().findOne({ email });
-  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+  if (!user) {
+    res.status(401).json({ message: 'Invalid credentials' });
+    return;
+  }
   const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
+  if (!valid) {
+    res.status(401).json({ message: 'Invalid credentials' });
+    return;
+  }
 
   const profile = {
     id: user._id.toString(),
@@ -87,16 +102,22 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
   await usersCollection().updateOne({ _id: user._id }, {
     $push: { sessions: { loginAt: new Date(), ip: req.ip } }
-  });
+  } as any);
 
   res.json({ token, user: profile });
 }));
 
-app.get('/api/auth/profile', verifyToken, asyncHandler(async (req, res) => {
+app.get('/api/auth/profile', verifyToken, asyncHandler(async (req: any, res: any) => {
   const email = req.user?.email as string;
-  if (!email) return res.status(400).json({ message: 'Email query required' });
+  if (!email) {
+    res.status(400).json({ message: 'Email query required' });
+    return;
+  }
   const user = await usersCollection().findOne({ email });
-  if (!user) return res.status(404).json({ message: 'User not found' });
+  if (!user) {
+    res.status(404).json({ message: 'User not found' });
+    return;
+  }
   res.json({ profile: { id: user._id.toString(), email: user.email, role: user.role, name: user.name, studentId: user.studentId } });
 }));
 

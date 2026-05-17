@@ -1,11 +1,12 @@
-version: '3.9'
 services:
   auth-service:
     build:
       context: ./server/auth-service
     ports:
       - '4001:4001'
+    restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - PORT=4001
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
       - JWT_SECRET=super-secret-jwt-key
@@ -17,7 +18,9 @@ services:
       context: ./server/ai-service
     ports:
       - '4002:4002'
+    restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - PORT=4002
       - OLLAMA_URL=http://ollama:11434
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
@@ -32,7 +35,9 @@ services:
       context: ./server/chat-service
     ports:
       - '4003:4003'
+    restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - PORT=4003
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
       - REDIS_URL=redis://redis:6379
@@ -46,7 +51,9 @@ services:
       context: ./server/notes-service
     ports:
       - '4004:4004'
+    restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - PORT=4004
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
       - JWT_SECRET=super-secret-jwt-key
@@ -58,7 +65,9 @@ services:
       context: ./server/community-service
     ports:
       - '4005:4005'
+    restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - PORT=4005
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
       - JWT_SECRET=super-secret-jwt-key
@@ -70,7 +79,9 @@ services:
       context: ./server/notification-service
     ports:
       - '4006:4006'
+    restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - PORT=4006
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
       - JWT_SECRET=super-secret-jwt-key

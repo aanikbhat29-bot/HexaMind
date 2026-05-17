@@ -11,7 +11,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json({ limit: '20mb' }));
 
-const PORT = process.env.PORT || 4004;
+const PORT = Number(process.env.PORT || 4004);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
 const PUBLIC_HOST = process.env.PUBLIC_HOST || `http://${LOCAL_IP}:${PORT}`;

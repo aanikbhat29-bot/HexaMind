@@ -85,11 +85,19 @@ class _LoginScreenState extends State<LoginScreen> {
           : await widget.authService.login(email: email, password: password);
 
       if (result['success']) {
+        final token = result['token'] as String?;
+        final user = result['user'] as Map<String, dynamic>?;
+        final loginRole = user?['role'] as String? ?? role;
+
+        if (token != null) {
+          await widget.authService.saveToken(token);
+        }
+
         developer.log('${isRegister ? 'Registration' : 'Login'} successful');
         if (mounted) {
           setState(() => message = '${isRegister ? 'Registration' : 'Login'} successful!');
           await Future.delayed(const Duration(milliseconds: 500));
-          widget.onLogin(role);
+          widget.onLogin(loginRole);
         }
       } else {
         setState(() => message = result['error'] ?? 'Authentication failed');

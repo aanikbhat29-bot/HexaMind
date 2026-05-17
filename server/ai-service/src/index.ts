@@ -12,7 +12,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json({ limit: '20mb' }));
 
-const PORT = process.env.PORT || 4002;
+const PORT = Number(process.env.PORT || 4002);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
 const PUBLIC_HOST = process.env.PUBLIC_HOST || `http://${LOCAL_IP}:${PORT}`;
@@ -71,9 +71,12 @@ app.post('/api/ai/planner', asyncHandler(async (req, res) => {
   res.json({ result });
 }));
 
-app.post('/api/ai/pdf', upload.single('file'), asyncHandler(async (req, res) => {
+app.post('/api/ai/pdf', upload.single('file'), asyncHandler(async (req: any, res: any) => {
   const file = req.file;
-  if (!file) return res.status(400).json({ message: 'PDF file is required' });
+  if (!file) {
+    res.status(400).json({ message: 'PDF file is required' });
+    return;
+  }
   res.json({ message: 'PDF ingest endpoint is ready. Use local OCR and embeddings to process documents.' });
 }));
 

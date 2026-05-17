@@ -10,7 +10,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json({ limit: '20mb' }));
 
-const PORT = process.env.PORT || 4005;
+const PORT = Number(process.env.PORT || 4005);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
 const PUBLIC_HOST = process.env.PUBLIC_HOST || `http://${LOCAL_IP}:${PORT}`;
@@ -36,15 +36,18 @@ app.get('/api/community/posts', asyncHandler(async (req, res) => {
   res.json({ posts: items });
 }));
 
-app.post('/api/community/posts/:id/comments', asyncHandler(async (req, res) => {
+app.post('/api/community/posts/:id/comments', asyncHandler(async (req: any, res: any) => {
   const { id } = req.params;
   const { author, text } = req.body;
   const result = await posts.findOneAndUpdate(
     { _id: new ObjectId(id) },
-    { $push: { comments: { author, text, createdAt: new Date() } } },
+    { $push: { comments: { author, text, createdAt: new Date() } } } as any,
     { returnDocument: 'after' }
   );
-  if (!result.value) return res.status(404).json({ message: 'Post not found' });
+  if (!result.value) {
+    res.status(404).json({ message: 'Post not found' });
+    return;
+  }
   res.json({ post: result.value });
 }));
 

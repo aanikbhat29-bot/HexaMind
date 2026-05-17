@@ -112,9 +112,25 @@ class _HexaMindAppState extends State<HexaMindApp> {
 
   Future<void> _bootApp() async {
     await Future.delayed(const Duration(milliseconds: 600));
+
+    if (_backendAvailable) {
+      final token = await authService.readToken();
+      if (token != null) {
+        final profileResult = await authService.getProfile(token: token);
+        if (profileResult['success'] == true && profileResult['user'] != null) {
+          final profile = profileResult['user'] as Map<String, dynamic>;
+          setState(() {
+            role = profile['role'] as String? ?? 'student';
+            view = 'dashboard';
+          });
+        } else {
+          await authService.deleteToken();
+        }
+      }
+    }
+
     setState(() {
       _bootComplete = true;
-      view = 'login';
     });
   }
 
@@ -132,6 +148,7 @@ class _HexaMindAppState extends State<HexaMindApp> {
   }
 
   Future<void> _logout() async {
+    await authService.deleteToken();
     setState(() {
       role = 'student';
       view = 'login';
