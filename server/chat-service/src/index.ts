@@ -12,6 +12,11 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json());
 
+app.use((req: any, res: any, next: any) => {
+  console.log(new Date().toISOString(), req.method, req.path);
+  next();
+});
+
 const PORT = Number(process.env.PORT || 4003);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
@@ -47,6 +52,13 @@ app.get('/api/chat/rooms', asyncHandler(async (req, res) => {
   const rooms = await conversations.distinct('room');
   res.json({ rooms });
 }));
+
+app.get('/api/health', (req, res) => res.json({ ok: true, service: 'chat-service', uptime: process.uptime(), time: new Date().toISOString() }));
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Unhandled error in chat-service:', err?.message || err);
+  res.status(500).json({ message: 'Internal server error' });
+});
 
 app.post('/api/chat/rooms/:room/messages', asyncHandler(async (req, res) => {
   const { room } = req.params;

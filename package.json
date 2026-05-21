@@ -27,6 +27,7 @@
     "build:notification": "npm --workspace @ai-edu/notification-service run build",
     "build:backend": "npm-run-all --parallel --aggregate-output --continue-on-error build:auth build:ai build:chat build:notes build:community build:notification",
     "docker:up": "docker-compose up --build"
+    ,"setup": "bash ./scripts/setup_env.sh"
   },
   "devDependencies": {
     "mongoose": "^7.5.0",

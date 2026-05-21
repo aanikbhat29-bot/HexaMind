@@ -10,6 +10,8 @@ services:
       - PORT=4001
       - MONGODB_URI=mongodb://mongodb:27017/ai-edu-platform
       - JWT_SECRET=super-secret-jwt-key
+      - SUPABASE_URL=
+      - SUPABASE_SERVICE_ROLE_KEY=
     depends_on:
       - mongodb
 
@@ -88,19 +90,19 @@ services:
     depends_on:
       - mongodb
 
-  web:
-    build:
-      context: ./apps/web
-    command: sh -c "npm install && npm run preview -- --host 0.0.0.0 --port 4173"
-    ports:
-      - '4173:4173'
-    depends_on:
-      - auth-service
-      - ai-service
-      - chat-service
-      - notes-service
-      - community-service
-      - notification-service
+  # web:
+  #   build:
+  #     context: ./apps/web
+  #   command: sh -c "npm install && npm run preview -- --host 0.0.0.0 --port 4173"
+  #   ports:
+  #     - '4173:4173'
+  #   depends_on:
+  #     - auth-service
+  #     - ai-service
+  #     - chat-service
+  #     - notes-service
+  #     - community-service
+  #     - notification-service
 
   redis:
     image: redis:7.0-alpine
@@ -127,7 +129,6 @@ services:
     volumes:
       - './docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro'
     depends_on:
-      - web
       - auth-service
       - ai-service
       - chat-service

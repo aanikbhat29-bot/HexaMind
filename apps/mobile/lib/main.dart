@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/teacher_dashboard.dart';
@@ -29,7 +30,20 @@ class StartupData {
   static Future<StartupData> load() async {
     try {
       await dotenv.load(fileName: '.env');
-      String apiUrl = dotenv.env['LOCAL_API_URL']?.trim() ?? 'http://192.168.1.100:4001';
+      String? configured = dotenv.env['LOCAL_API_URL']?.trim();
+      String apiUrl = configured ?? '';
+      if (apiUrl.isEmpty) {
+        try {
+          final info = NetworkInfo();
+          final ip = await info.getWifiIP();
+          if (ip != null && ip.isNotEmpty) {
+            apiUrl = 'http://$ip:4001';
+          }
+        } catch (e) {
+          developer.log('NetworkInfo failed: $e');
+        }
+      }
+      if (apiUrl.isEmpty) apiUrl = 'http://192.168.1.100:4001';
       
       developer.log('HexaMind Starting up...');
       developer.log('Backend URL: $apiUrl');
@@ -68,7 +82,7 @@ class StartupData {
     try {
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 3);
-      final request = await client.getUrl(Uri.parse('$apiUrl/api/auth/login'));
+      final request = await client.getUrl(Uri.parse('$apiUrl/api/health'));
       await request.close().timeout(const Duration(seconds: 3));
       return true;
     } catch (e) {

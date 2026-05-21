@@ -11,6 +11,11 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json({ limit: '20mb' }));
 
+app.use((req: any, res: any, next: any) => {
+  console.log(new Date().toISOString(), req.method, req.path);
+  next();
+});
+
 const PORT = Number(process.env.PORT || 4004);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
@@ -45,12 +50,22 @@ app.get('/api/notes', asyncHandler(async (req, res) => {
   res.json({ notes: items });
 }));
 
-app.get('/api/notes/:id', asyncHandler(async (req, res) => {
+app.get('/api/notes/:id', asyncHandler(async (req: any, res: any) => {
   const { id } = req.params;
   const note = await notes.findOne({ _id: new ObjectId(id) });
-  if (!note) return res.status(404).json({ message: 'Note not found' });
+  if (!note) {
+    res.status(404).json({ message: 'Note not found' });
+    return;
+  }
   res.json({ note });
 }));
+
+app.get('/api/health', (req, res) => res.json({ ok: true, service: 'notes-service', uptime: process.uptime(), time: new Date().toISOString() }));
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Unhandled error in notes-service:', err?.message || err);
+  res.status(500).json({ message: 'Internal server error' });
+});
 
 app.listen(PORT, BIND_HOST, async () => {
   await connect();

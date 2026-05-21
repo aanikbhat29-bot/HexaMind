@@ -10,6 +10,11 @@ const app = express();
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json({ limit: '20mb' }));
 
+app.use((req: any, res: any, next: any) => {
+  console.log(new Date().toISOString(), req.method, req.path);
+  next();
+});
+
 const PORT = Number(process.env.PORT || 4005);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
@@ -43,24 +48,34 @@ app.post('/api/community/posts/:id/comments', asyncHandler(async (req: any, res:
     { _id: new ObjectId(id) },
     { $push: { comments: { author, text, createdAt: new Date() } } } as any,
     { returnDocument: 'after' }
-  );
-  if (!result.value) {
+  ) as any;
+  if (!result?.value) {
     res.status(404).json({ message: 'Post not found' });
     return;
   }
   res.json({ post: result.value });
 }));
 
-app.post('/api/community/posts/:id/like', asyncHandler(async (req, res) => {
+app.post('/api/community/posts/:id/like', asyncHandler(async (req: any, res: any) => {
   const { id } = req.params;
   const result = await posts.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $inc: { likes: 1 } },
     { returnDocument: 'after' }
-  );
-  if (!result.value) return res.status(404).json({ message: 'Post not found' });
+  ) as any;
+  if (!result?.value) {
+    res.status(404).json({ message: 'Post not found' });
+    return;
+  }
   res.json({ post: result.value });
 }));
+
+app.get('/api/health', (req, res) => res.json({ ok: true, service: 'community-service', uptime: process.uptime(), time: new Date().toISOString() }));
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Unhandled error in community-service:', err?.message || err);
+  res.status(500).json({ message: 'Internal server error' });
+});
 
 app.listen(PORT, BIND_HOST, async () => {
   await connect();

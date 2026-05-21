@@ -9,31 +9,46 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
+app.use(cors({ origin: true, credentials: true, methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json({ limit: '20mb' }));
+
+// Basic request logging
+app.use((req: any, res: any, next: any) => {
+  console.log(new Date().toISOString(), req.method, req.path);
+  next();
+});
 
 const PORT = Number(process.env.PORT || 4002);
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 const LOCAL_IP = process.env.LOCAL_IP || '192.168.1.37';
 const PUBLIC_HOST = process.env.PUBLIC_HOST || `http://${LOCAL_IP}:${PORT}`;
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://ollama:11434';
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/ai-edu-platform';
 const client = new MongoClient(MONGODB_URI);
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 const connect = async () => {
-  await client.connect();
-  console.log('AI service connected to MongoDB');
+  try {
+    await client.connect();
+    console.log('AI service connected to MongoDB');
+  } catch (err) {
+    console.warn('AI service could not connect to MongoDB, continuing');
+  }
 };
 
 const createOllamaCompletion = async (prompt: string) => {
-  const response = await axios.post(`${OLLAMA_URL}/api/completions`, {
-    model: 'llama3',
-    prompt,
-    max_tokens: 500
-  });
-  return response.data;
+  try {
+    const response = await axios.post(`${OLLAMA_URL}/api/completions`, {
+      model: 'llama3',
+      prompt,
+      max_tokens: 500
+    }, { timeout: 20000 });
+    return response.data;
+  } catch (err: any) {
+    console.error('Ollama call failed:', err?.message || err);
+    return { error: 'Ollama unavailable or failed to complete request' };
+  }
 };
 
 app.post('/api/ai/chat', asyncHandler(async (req, res) => {
@@ -80,7 +95,23 @@ app.post('/api/ai/pdf', upload.single('file'), asyncHandler(async (req: any, res
   res.json({ message: 'PDF ingest endpoint is ready. Use local OCR and embeddings to process documents.' });
 }));
 
+// Health endpoint that checks Ollama
+app.get('/api/health', asyncHandler(async (req: any, res: any) => {
+  try {
+    const ping = await axios.get(`${OLLAMA_URL}/api/models`, { timeout: 3000 });
+    res.json({ ok: true, service: 'ai-service', ollama: !!ping.data, time: new Date().toISOString() });
+  } catch (err) {
+    res.status(503).json({ ok: false, service: 'ai-service', message: 'Cannot reach Ollama', time: new Date().toISOString() });
+  }
+}));
+
+// Global error handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Unhandled error:', err?.message || err);
+  res.status(500).json({ message: 'Internal server error' });
+});
+
 app.listen(PORT, BIND_HOST, async () => {
   await connect();
-  console.log(`AI service running on http://${LOCAL_IP}:${PORT}`);
+  console.log(`AI service running on http://${LOCAL_IP}:${PORT} (OLLAMA=${OLLAMA_URL})`);
 });
