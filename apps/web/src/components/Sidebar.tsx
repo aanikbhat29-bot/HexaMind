@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-interface Props { role: 'teacher' | 'student' | null; }
+interface Props { role: 'teacher' | 'student' | 'parent' | null; }
 
 export default function Sidebar({ role }: Props) {
   const common = [
@@ -10,6 +10,7 @@ export default function Sidebar({ role }: Props) {
   ];
   const teacherLinks = [{ name: 'Dashboard', path: '/teacher' }];
   const studentLinks = [{ name: 'Dashboard', path: '/student' }];
+  const parentLinks = [{ name: 'Dashboard', path: '/parent' }];
 
   return (
     <aside className="sidebar" style={{ width: 280, padding: 20, borderRadius: 24, background: 'rgba(10, 14, 28, 0.96)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -19,7 +20,7 @@ export default function Sidebar({ role }: Props) {
         <h2 style={{ margin: '8px 0 0', fontSize: 22 }}>AI Classroom</h2>
       </div>
       <nav style={{ display: 'grid', gap: 12 }}>
-        {(role === 'teacher' ? teacherLinks : studentLinks).concat(common).map((item) => (
+        {(role === 'teacher' ? teacherLinks : role === 'parent' ? parentLinks : studentLinks).concat(common).map((item) => (
           <Link key={item.path} to={item.path} style={{ color: '#f8fafc', padding: 14, borderRadius: 16, display: 'block', background: 'rgba(255,255,255,0.03)', textDecoration: 'none' }}>
             {item.name}
           </Link>
